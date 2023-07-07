@@ -14,8 +14,8 @@ export const FormUploadImage = ({ onUploaded, ...props }: React.ComponentProps<"
     if (file) {
       try {
         await putFile(file[0], "/");
-        onUploaded();
         setFile(null);
+        window.location.reload();
       } catch (error) {
         console.log({ error });
       }
