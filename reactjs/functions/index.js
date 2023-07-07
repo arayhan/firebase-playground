@@ -1,44 +1,35 @@
-/**
- * Import function triggers from their respective submodules:
- *
- * const {onCall} = require("firebase-functions/v2/https");
- * const {onDocumentWritten} = require("firebase-functions/v2/firestore");
- *
- * See a full list of supported triggers at https://firebase.google.com/docs/functions
- */
+const { runWith, setGlobalOptions } = require('firebase-functions/v2');
+const { initializeApp, storage: getStorage } = require('firebase-admin');
+const sharp = require('sharp');
+const fs = require('fs');
+const os = require('os');
+const path = require('path');
 
-const functions = require("firebase-functions");
-const { onRequest, onCall } = require("firebase-functions/v2/https");
-const { log, info, debug, warn, error, write } = require("firebase-functions/logger");
-const { setGlobalOptions } = require("firebase-functions/v2");
-
+initializeApp();
 setGlobalOptions({ maxInstances: 10 });
 
-exports.randomNumber = onRequest((req, res) => {
-  const number = Math.round(Math.random() * 100);
-  info("Random number generated", { structuredData: true });
-  res.send(number.toString());
-});
+exports.compressImages = runWith({ memory: '2GB' }).storage.object().onFinalize(async (object) => {
+  // File and directory paths
+  const filePath = object.name;
+  const tempLocalFile = path.join(os.tmpdir(), path.basename(filePath));
+  const tempLocalDir = path.dirname(tempLocalFile);
 
-exports.helloWorldV1 = functions.https.onRequest((request, response) => {
-  const message = "Hello from Firebase! => Using Firebase Functions v1";
-  write({ message, severity: "EMERGENCY" });
-  response.send(message);
-});
+  // Cloud Storage variables
+  const bucket = getStorage().bucket(object.bucket);
 
-exports.helloWorld = onRequest((request, response) => {
-  info("Hello logs!", { structuredData: true });
-  response.send("Hello from Firebase!");
-});
+  // Download file from bucket.
+  await fs.promises.mkdir(tempLocalDir, { recursive: true });
+  await bucket.file(filePath).download({ destination: tempLocalFile });
 
-exports.redirectToRayhanInstagram = onRequest((request, response) => {
-  info("Hello logs!", { structuredData: true });
-  response.redirect("https://www.instagram.com/arayhan_/");
-});
+  // Compress the image using sharp.
+  await sharp(tempLocalFile)
+    .resize(800) // Resize image
+    .jpeg({ quality: 80 }) // Compress the image
+    .toFile(tempLocalFile);
 
-exports.sayHello = onCall(({ auth, data }, context) => {
-  info({ data, context });
-  warn({ auth });
-  warn({ data });
-  return `hello ${data.name}`;
+  // Upload the compressed image back to the bucket.
+  await bucket.upload(tempLocalFile, { destination: filePath });
+
+  // Clean up the local filesystem.
+  await fs.promises.unlink(tempLocalFile);
 });
