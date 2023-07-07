@@ -1,8 +1,8 @@
-import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
-import { auth } from "../../utils/firebase.config";
 import { useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { FirebaseError } from "firebase/app";
+import { Button } from "../../components/atoms/Button";
+import { signUp } from "../../models/auth.model";
+import { Input } from "../../components/atoms/Input";
 
 type Props = {};
 
@@ -14,49 +14,26 @@ const SignUp = (props: Props) => {
 
   const navigate = useNavigate();
 
-  const handleSignUpWithEmailAndPassword = async () => {
+  const handleSignUp = async () => {
     const name = nameRef.current?.value;
     const email = emailRef.current?.value;
     const password = passwordRef.current?.value;
 
-    if (name && email && password) {
-      try {
-        const response = await createUserWithEmailAndPassword(auth, email, password);
-        const user = response.user;
+    const response = await signUp({ name, email, password });
 
-        await updateProfile(user, {
-          displayName: name,
-        });
-
-        navigate("/login");
-      } catch (error) {
-        if (error instanceof FirebaseError) {
-          console.log(error.code);
-        }
-      }
+    if (response) {
+      navigate("/login");
     }
   };
 
   return (
-    <div className="bg-gray-200">
-      <div className="container py-20">
+    <div className="grid min-h-screen bg-gray-200 place-items-center">
+      <div className="container max-w-screen-sm">
         <div className="p-12 space-y-4 bg-white rounded shadow-md">
-          <div>
-            <h1>LOGIN</h1>
-          </div>
           <div className="flex flex-col gap-3">
-            <label>
-              <div>Display Name</div>
-              <input ref={nameRef} className="px-3 py-1 border rounded-md" type="email" />
-            </label>
-            <label>
-              <div>Email</div>
-              <input ref={emailRef} className="px-3 py-1 border rounded-md" type="email" />
-            </label>
-            <label>
-              <div>Password</div>
-              <input ref={passwordRef} className="px-3 py-1 border rounded-md" type="password" />
-            </label>
+            <Input ref={nameRef} label="Display Name" />
+            <Input ref={emailRef} label="Email" type="email" />
+            <Input ref={passwordRef} label="Password" type="password" />
           </div>
           <div>
             sudah punya akun?{" "}
@@ -65,9 +42,7 @@ const SignUp = (props: Props) => {
             </Link>
           </div>
           <div className="space-x-3">
-            <button className="px-5 py-2 bg-blue-200 rounded-md" type="button" onClick={handleSignUpWithEmailAndPassword}>
-              Register
-            </button>
+            <Button onClick={handleSignUp}>Register</Button>
           </div>
         </div>
       </div>

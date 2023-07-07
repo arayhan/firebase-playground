@@ -1,72 +1,26 @@
-import { useEffect, useState } from "react";
-import { auth } from "../../utils/firebase.config";
-import { GoogleAuthProvider, User, signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
+import { useState } from "react";
 import { Link } from "react-router-dom";
+import { getCurrentUser, login, loginWithGoogle, logout } from "../../models/auth.model";
+import { Input } from "../../components/atoms/Input";
+import { Button } from "../../components/atoms/Button";
 
-type Props = {};
-
-const SignIn = (props: Props) => {
-  const [user, setUser] = useState<User | null>(null);
+const SignIn = () => {
+  const user = getCurrentUser();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   const handleLogin = async () => {
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
-    } catch (error) {
-      console.log({ error });
-    }
+    await login(email, password);
   };
-
-  const handleLoginWithGoogle = async () => {
-    const provider = new GoogleAuthProvider();
-    try {
-      await signInWithPopup(auth, provider);
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  const getCurrentUser = () => {
-    const user = auth.currentUser;
-    if (user) {
-      console.log(user);
-    } else {
-      console.log("no user");
-    }
-  };
-
-  const handleLogout = async () => {
-    await auth.signOut();
-    setUser(null);
-  };
-
-  useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((firebaseUser) => {
-      console.log({ firebaseUser });
-      setUser(firebaseUser);
-    });
-
-    return unsubscribe;
-  }, []);
 
   return (
-    <div className="bg-gray-200">
-      <div className="container py-20">
+    <div className="grid min-h-screen bg-gray-200 place-items-center">
+      <div className="container max-w-screen-sm">
         <div className="p-12 space-y-4 bg-white rounded shadow-md">
-          <div>
-            <h1>LOGIN</h1>
-          </div>
-          <div>
-            <label>
-              <div>Email</div>
-              <input className="px-3 py-1 border rounded-md" type="email" onChange={(e) => setEmail(e.target.value)} />
-            </label>
-            <label>
-              <div>Password</div>
-              <input className="px-3 py-1 border rounded-md" type="password" onChange={(e) => setPassword(e.target.value)} />
-            </label>
+          <div className="flex flex-col gap-3">
+            <Input label="Email" type="email" onChange={(e) => setEmail(e.target.value)} />
+            <Input label="Password" type="password" onChange={(e) => setPassword(e.target.value)} />
           </div>
           <div>
             belum punya akun?{" "}
@@ -77,22 +31,11 @@ const SignIn = (props: Props) => {
           <div className="space-x-3">
             {!user && (
               <>
-                <button className="px-5 py-2 bg-blue-200 rounded-md" type="button" onClick={handleLogin}>
-                  Login
-                </button>
-                <button className="px-5 py-2 bg-blue-200 rounded-md" type="button" onClick={handleLoginWithGoogle}>
-                  Login with Google
-                </button>
+                <Button onClick={handleLogin}>Login</Button>
+                <Button onClick={loginWithGoogle}>Login with Google</Button>
               </>
             )}
-            <button className="px-5 py-2 bg-blue-200 rounded-md" type="button" onClick={getCurrentUser}>
-              Check User
-            </button>
-            {user && (
-              <button className="px-5 py-2 bg-blue-200 rounded-md" type="button" onClick={handleLogout}>
-                Logout, {user.displayName}
-              </button>
-            )}
+            {user && <Button onClick={logout}>Logout, {user.displayName}</Button>}
           </div>
         </div>
       </div>
