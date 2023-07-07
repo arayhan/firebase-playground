@@ -19,9 +19,10 @@ export const login = async (email: string, password: string) => {
 type SignUpRequest = {
   name: string | undefined;
   email: string | undefined;
+  phoneNumber: string | undefined;
   password: string | undefined;
 };
-export const signUp = async ({ name, email, password }: SignUpRequest) => {
+export const signUp = async ({ name, email, phoneNumber, password }: SignUpRequest) => {
   if (name && email && password) {
     try {
       const response = await createUserWithEmailAndPassword(auth, email, password);

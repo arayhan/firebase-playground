@@ -17,9 +17,10 @@ const SignUp = (props: Props) => {
   const handleSignUp = async () => {
     const name = nameRef.current?.value;
     const email = emailRef.current?.value;
+    const phoneNumber = phoneNumberRef.current?.value;
     const password = passwordRef.current?.value;
 
-    const response = await signUp({ name, email, password });
+    const response = await signUp({ name, email, phoneNumber, password });
 
     if (response) {
       navigate("/login");
@@ -33,6 +34,7 @@ const SignUp = (props: Props) => {
           <div className="flex flex-col gap-3">
             <Input ref={nameRef} label="Display Name" />
             <Input ref={emailRef} label="Email" type="email" />
+            <Input ref={phoneNumberRef} label="Phone Number" />
             <Input ref={passwordRef} label="Password" type="password" />
           </div>
           <div>
