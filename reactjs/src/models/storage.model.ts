@@ -1,4 +1,4 @@
-import { ref, list, uploadBytes, deleteObject, getDownloadURL, listAll } from "firebase/storage";
+import { ref, uploadBytes, deleteObject, getDownloadURL, listAll } from "firebase/storage";
 import { storageUploadDir, storageThumbnailDir } from "../utils/firebase.config";
 
 type StorageResponse = {
